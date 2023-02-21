@@ -1,5 +1,6 @@
 #include "types.h"
 #include "gdt.h"
+#include "interrupts.h"
 
 void printf(char *str){
 	uint16_t* VideoMemory = (uint16_t *)0xb8000;
@@ -10,6 +11,8 @@ void printf(char *str){
                 x = 0;
                 y++;
                 break;
+            case '\t':
+                x += 7;
             default:
                 VideoMemory[80*y + x] = (VideoMemory[80*y + x] & 0xFF00 | str[i]);
                 x++;
@@ -42,5 +45,7 @@ extern "C" void kernelMain(void *multiboot_structure, uint32_t magicnumber){
 	printf("Hello. Welcome to the BenOS\n");
     printf("this is a simple OS running on VirtualBox\n");
 	GlobalDescriptorTable gdt;
+    InterruptManager interrupts(&gdt);
+    interrupts.Activate();
 	while(1);
 }
