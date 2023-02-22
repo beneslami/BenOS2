@@ -1,7 +1,10 @@
-#include "interrupts.h"
+#include <hardwarecommunication/interrupts.h>
+
+using namespace BenOS::common;
+using namespace BenOS::hardwarecommunication;
 
 void printf(char* str);
-
+void printfHex(uint8_t);
 InterruptHandler::InterruptHandler(uint8_t interruptNumber, InterruptManager *interruptManager) {
     this->interruptNumber = interruptNumber;
     this->interruptManager = interruptManager;
@@ -13,7 +16,7 @@ InterruptHandler::~InterruptHandler() {
         interruptManager->handlers[interruptNumber] = 0;
 }
 
-uint32_t InterruptHandler::HandleInterrupt(uint32_t esp) {
+BenOS::common::uint32_t InterruptHandler::HandleInterrupt(uint32_t esp) {
     return esp;
 }
 
@@ -22,23 +25,20 @@ InterruptManager::GateDescriptor InterruptManager::interruptDescriptorTable[256]
 
 InterruptManager *InterruptManager::ActiveInterruptManager = 0;
 
-uint32_t InterruptManager::handleInterrupt(uint8_t interruptNumber, uint32_t esp) {
+BenOS::common::uint32_t InterruptManager::handleInterrupt(uint8_t interruptNumber, uint32_t esp) {
     if(ActiveInterruptManager != 0){
         return ActiveInterruptManager->DohandleInterrupt(interruptNumber, esp);
     }
     return esp;
 }
 
-uint32_t InterruptManager::DohandleInterrupt(uint8_t interruptNumber, uint32_t esp) {
+BenOS::common::uint32_t InterruptManager::DohandleInterrupt(uint8_t interruptNumber, uint32_t esp) {
     if(handlers[interruptNumber] != 0){
         esp = handlers[interruptNumber]->HandleInterrupt(esp);
     }
     else if(interruptNumber != 0x20) {
-        char *foo = "Unhandled interrupt 0x00";
-        char *hex = "0123456789ABCDEF";
-        foo[22] = hex[(interruptNumber >> 4) & 0x0F];
-        foo[23] = hex[interruptNumber & 0x0F];
-        printf(foo);
+        printf("Unhandled interrupt 0x00");
+        printfHex(interruptNumber);
     }
     if(0x20 <= interruptNumber && interruptNumber < 0x30){
         picMasterCommand.Write(0x20);
@@ -70,6 +70,7 @@ InterruptManager::InterruptManager(GlobalDescriptorTable *gdt): picMasterCommand
     }
     SetInterruptDescriptorTableEntry(0x20, CodeSegment, &HandleInterruptRequest0x00, 0, IDT_INTERRUPT_GATE);
     SetInterruptDescriptorTableEntry(0x21, CodeSegment, &HandleInterruptRequest0x01, 0, IDT_INTERRUPT_GATE);
+    SetInterruptDescriptorTableEntry(0x2C, CodeSegment, &HandleInterruptRequest0x0C, 0, IDT_INTERRUPT_GATE);
     picMasterCommand.Write(0x11);
     picSlaveCommand.Write(0x11);
     picMasterData.Write(0x20);
