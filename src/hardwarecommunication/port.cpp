@@ -1,4 +1,7 @@
-#include "port.h"
+#include <hardwarecommunication/port.h>
+
+using namespace BenOS::common;
+using namespace BenOS::hardwarecommunication;
 
 Port::Port(uint16_t portNum): portNumber(portNum){
 }
