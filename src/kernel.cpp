@@ -5,11 +5,14 @@
 #include <drivers/keyboard.h>
 #include <drivers/mouse.h>
 #include <drivers/driver.h>
+#include <drivers/vga.h>
+#include <gui/desktop.h>
 
 using namespace BenOS;
 using namespace BenOS::common;
 using namespace BenOS::drivers;
 using namespace BenOS::hardwarecommunication;
+using namespace BenOS::gui;
 
 void printf(char *str){
 	uint16_t* VideoMemory = (uint16_t *)0xb8000;
@@ -106,18 +109,26 @@ extern "C" void kernelMain(void *multiboot_structure, uint32_t magicnumber){
 	GlobalDescriptorTable gdt;
     InterruptManager interrupts(&gdt);
     printf("Initializing Hardware, stage 1\n");
+    Desktop desktop(320, 200, 0x00, 0x00, 0xA8);
     DriverManager drvManager;
-    PrintKeyboardEventHandler kbhandler;
-    KeyboardDriver keyboard(&interrupts, &kbhandler);
+    //PrintKeyboardEventHandler kbhandler;
+    //KeyboardDriver keyboard(&interrupts, &kbhandler);
+    KeyboardDriver keyboard(&interrupts, &desktop);
     drvManager.AddDriver(&keyboard);
-    MouseToConsole mousehandler;
-    MouseDriver mouse(&interrupts, &mousehandler);
+    //MouseToConsole mousehandler;
+    //MouseDriver mouse(&interrupts, &mousehandler);
+    MouseDriver mouse(&interrupts, &desktop);
     drvManager.AddDriver(&mouse);
     PeripheralComponentInterconnectController PCIController;
     PCIController.SelectDrivers(&drvManager, &interrupts);
+    VideoGraphicsArray vga;
+
     printf("Initializing Hardware, stage 2\n");
     drvManager.ActivateAll();
     printf("Initializing Hardware, stage 3\n");
+    vga.SetMode(320, 200, 8);
     interrupts.Activate();
-	while(1);
+	while(1){
+        desktop.Draw(&vga);
+    }
 }
