@@ -19,6 +19,7 @@ _ZN5BenOS21hardwarecommunication16InterruptManager16HandleExceptions\num\()Ev:
 
 _ZN5BenOS21hardwarecommunication16InterruptManager26HandleInterruptRequest\num\()Ev:
     movb $\num + IRQ_BASE, (interruptnumber)
+    pushl $0
     jmp int_bottom
 .endm
 
@@ -48,6 +49,8 @@ int_bottom:
     popl %edi
     popl %ebp
     #popa
+
+    add $4, %esp
 _ZN5BenOS21hardwarecommunication16InterruptManager22IgnoreInterruptRequestEv:
     iret
 

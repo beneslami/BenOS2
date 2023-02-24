@@ -1,5 +1,6 @@
 #include <hardwarecommunication/interrupts.h>
 
+using namespace BenOS;
 using namespace BenOS::common;
 using namespace BenOS::hardwarecommunication;
 
@@ -36,11 +37,14 @@ BenOS::common::uint32_t InterruptManager::DohandleInterrupt(uint8_t interruptNum
     if(handlers[interruptNumber] != 0){
         esp = handlers[interruptNumber]->HandleInterrupt(esp);
     }
-    else if(interruptNumber != 0x20) {
+    else if(interruptNumber != hardwareInterruptOffset) {
         printf("Unhandled interrupt 0x00");
         printfHex(interruptNumber);
     }
-    if(0x20 <= interruptNumber && interruptNumber < 0x30){
+    if(interruptNumber == hardwareInterruptOffset){
+        esp = (uint32_t)taskManager->Schedule((CPUState*)esp);
+    }
+    if(hardwareInterruptOffset <= interruptNumber && interruptNumber < hardwareInterruptOffset + 16){
         picMasterCommand.Write(0x20);
         if(0x28 <= interruptNumber)
             picSlaveCommand.Write(0x20);
@@ -60,8 +64,10 @@ void InterruptManager::SetInterruptDescriptorTableEntry(uint8_t interruptNumber,
     interruptDescriptorTable[interruptNumber].reserved = 0;
 }
 
-InterruptManager::InterruptManager(GlobalDescriptorTable *gdt): picMasterCommand(0x20), picMasterData(0x21),
+InterruptManager::InterruptManager(uint16_t hardwareInterruptOffset, GlobalDescriptorTable *gdt, TaskManager *taskManager): picMasterCommand(0x20), picMasterData(0x21),
                                                                 picSlaveCommand(0xA0), picSlaveData(0xA1) {
+    this->taskManager = taskManager;
+    this->hardwareInterruptOffset = hardwareInterruptOffset;
     uint16_t CodeSegment = gdt->CodeSegmentSelector();
     const uint8_t IDT_INTERRUPT_GATE = 0xE;
     for(uint16_t i = 0; i < 256; i++){

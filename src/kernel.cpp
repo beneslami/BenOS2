@@ -9,6 +9,8 @@
 #include <gui/desktop.h>
 #include <gui/window.h>
 
+//#define GRAPHICSMODE 0
+
 using namespace BenOS;
 using namespace BenOS::common;
 using namespace BenOS::drivers;
@@ -95,6 +97,18 @@ public:
     }
 };
 
+void taskA(){
+    while(true){
+        printf("Task 1\n");
+    }
+}
+
+void taskB(){
+    while(true){
+        printf("task 2\n");
+    }
+}
+
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
 extern "C" constructor end_ctors;
@@ -108,32 +122,52 @@ extern "C" void kernelMain(void *multiboot_structure, uint32_t magicnumber){
 	printf("Hello. Welcome to the BenOS\n");
     printf("this is a simple OS running on VirtualBox\n");
 	GlobalDescriptorTable gdt;
-    InterruptManager interrupts(&gdt);
+    TaskManager taskManager;
+    Task task1(&gdt, taskA);
+    Task task2(&gdt, taskB);
+    taskManager.AddTask(&task1);
+    taskManager.AddTask(&task2);
+    InterruptManager interrupts(0x20, &gdt, &taskManager);
     printf("Initializing Hardware, stage 1\n");
+#ifdef GRAPHICSMODE
     Desktop desktop(320, 200, 0x00, 0x00, 0xA8);
+#endif
     DriverManager drvManager;
-    //PrintKeyboardEventHandler kbhandler;
-    //KeyboardDriver keyboard(&interrupts, &kbhandler);
+
+#ifdef GRAPHICSMODE
     KeyboardDriver keyboard(&interrupts, &desktop);
+#else
+    PrintKeyboardEventHandler kbhandler;
+    KeyboardDriver keyboard(&interrupts, &kbhandler);
+#endif
     drvManager.AddDriver(&keyboard);
-    //MouseToConsole mousehandler;
-    //MouseDriver mouse(&interrupts, &mousehandler);
+#ifdef GRAPHICSMODE
     MouseDriver mouse(&interrupts, &desktop);
+#else
+    MouseToConsole mousehandler;
+    MouseDriver mouse(&interrupts, &mousehandler);
+#endif
     drvManager.AddDriver(&mouse);
     PeripheralComponentInterconnectController PCIController;
     PCIController.SelectDrivers(&drvManager, &interrupts);
+#ifdef GRAPHICSMODE
     VideoGraphicsArray vga;
-
+#endif
     printf("Initializing Hardware, stage 2\n");
     drvManager.ActivateAll();
     printf("Initializing Hardware, stage 3\n");
+#ifdef GRAPHICSMODE
     vga.SetMode(320, 200, 8);
     Window win1(&desktop, 10, 10, 20, 20, 0xA8, 0x00, 0x00);
     desktop.AddChild(&win1);
     Window win2(&desktop, 40, 15, 30, 30, 0x00, 0xA8, 0x00);
     desktop.AddChild(&win2);
+#endif
+
     interrupts.Activate();
 	while(1){
+#ifdef GRAPHICSMODE
         desktop.Draw(&vga);
+#endif
     }
 }

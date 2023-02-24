@@ -1,6 +1,7 @@
 #ifndef INTERRUPT_H
 #define INTERRUPT_H
 #include <common/types.h>
+#include <multitasking.h>
 #include <hardwarecommunication/port.h>
 #include <gdt.h>
 
@@ -23,6 +24,7 @@ namespace BenOS {
         protected:
             static InterruptManager *ActiveInterruptManager;
             InterruptHandler *handlers[256];
+            TaskManager *taskManager;
             struct GateDescriptor {
                 BenOS::common::uint16_t handlerAddressLowBits;
                 BenOS::common::uint16_t gdt_codeSegmentSelector;
@@ -35,9 +37,8 @@ namespace BenOS {
                 BenOS::common::uint16_t size;
                 BenOS::common::uint32_t base;
             }__attribute__((packed));
-
-            static void
-            SetInterruptDescriptorTableEntry(BenOS::common::uint8_t interruptNumber, BenOS::common::uint16_t gdt_codeSegmentSelectorOffset,
+            BenOS::common::uint16_t hardwareInterruptOffset;
+            static void SetInterruptDescriptorTableEntry(BenOS::common::uint8_t interruptNumber, BenOS::common::uint16_t gdt_codeSegmentSelectorOffset,
                                              void (*handler)(), BenOS::common::uint8_t DescriptorPrivilegeLevel,
                                              BenOS::common::uint8_t DescriptorType);
             Port8BitSlow picMasterCommand;
@@ -46,7 +47,7 @@ namespace BenOS {
             Port8BitSlow picSlaveData;
 
         public:
-            InterruptManager(GlobalDescriptorTable *gdt);
+            InterruptManager(BenOS::common::uint16_t hardwareInterruptOffset, BenOS::GlobalDescriptorTable *gdt, BenOS::TaskManager *taskManager);
             ~InterruptManager();
             void Activate();
             void Deactivate();
