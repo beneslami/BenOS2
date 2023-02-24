@@ -7,6 +7,7 @@
 #include <drivers/driver.h>
 #include <drivers/vga.h>
 #include <gui/desktop.h>
+#include <gui/window.h>
 
 using namespace BenOS;
 using namespace BenOS::common;
@@ -127,6 +128,10 @@ extern "C" void kernelMain(void *multiboot_structure, uint32_t magicnumber){
     drvManager.ActivateAll();
     printf("Initializing Hardware, stage 3\n");
     vga.SetMode(320, 200, 8);
+    Window win1(&desktop, 10, 10, 20, 20, 0xA8, 0x00, 0x00);
+    desktop.AddChild(&win1);
+    Window win2(&desktop, 40, 15, 30, 30, 0x00, 0xA8, 0x00);
+    desktop.AddChild(&win2);
     interrupts.Activate();
 	while(1){
         desktop.Draw(&vga);
