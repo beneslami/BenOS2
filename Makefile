@@ -50,6 +50,7 @@ mykernel.iso: mykernel.bin
 	rm -rf iso
 
 run: mykernel.iso
+	#qemu-system-i386 -boot d -cdrom mykernel.iso -vga std -m 128 -serial file:serial_out.txt -no-acpi
 	(killall VirtualBox && sleep 1) || true
 	VirtualBoxVM --startvm 'My Operating System' &
 
