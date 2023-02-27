@@ -9,6 +9,7 @@
 #include <drivers/vga.h>
 #include <gui/desktop.h>
 #include <gui/window.h>
+#include <drivers/amd_am79c973.h>
 
 //#define GRAPHICSMODE 0
 
@@ -49,11 +50,23 @@ void printf(char *str){
 }
 
 void printfHex(uint8_t key){
-    char *foo = "KEYBOARD 0x00";
+    char *foo = "00";
     char *hex = "0123456789ABCDEF";
     foo[0] = hex[(key >> 4) & 0x0F];
     foo[1] = hex[key & 0x0F];
     printf(foo);
+}
+
+void printfHex16(uint16_t key){
+    printfHex((key >> 8) & 0xFF);
+    printfHex( key & 0xFF);
+}
+
+void printfHex32(uint32_t key){
+    printfHex((key >> 24) & 0xFF);
+    printfHex((key >> 16) & 0xFF);
+    printfHex((key >> 8) & 0xFF);
+    printfHex( key & 0xFF);
 }
 
 class PrintKeyboardEventHandler : public KeyboardEventHandler{
@@ -183,6 +196,9 @@ extern "C" void kernelMain(void *multiboot_structure, uint32_t magicnumber){
     Window win2(&desktop, 40, 15, 30, 30, 0x00, 0xA8, 0x00);
     desktop.AddChild(&win2);
 #endif
+
+    //amd_am79c973* eth0 = (amd_am79c973*)(drvManager.drivers[2]);
+    //eth0->Send((uint8_t*)"Hello Network", 13);
 
     interrupts.Activate();
 	while(1){
