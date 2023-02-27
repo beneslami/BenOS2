@@ -15,7 +15,10 @@ void KeyboardEventHandler::OnKeyUp(char c) {
 
 }
 
-KeyboardDriver::KeyboardDriver(InterruptManager *manager, KeyboardEventHandler *handler): InterruptHandler(0x21, manager), dataport(0x60), commandport(0x64) {
+KeyboardDriver::KeyboardDriver(InterruptManager *manager, KeyboardEventHandler *handler):
+    InterruptHandler(manager, 0x21),
+    dataport(0x60),
+    commandport(0x64) {
     this->handler = handler;
 }
 
