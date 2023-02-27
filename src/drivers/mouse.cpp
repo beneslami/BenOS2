@@ -24,7 +24,10 @@ void MouseEventHandler::OnMouseUp(uint8_t button) {
 
 }
 
-MouseDriver::MouseDriver(InterruptManager *manager, MouseEventHandler *handler) : InterruptHandler(0x2C, manager), dataport(0x60), commandport(0x64) {
+MouseDriver::MouseDriver(InterruptManager *manager, MouseEventHandler *handler) :
+    InterruptHandler(manager, 0x2C),
+    dataport(0x60),
+    commandport(0x64) {
     this->handler = handler;
 }
 
@@ -37,7 +40,7 @@ void MouseDriver::Activate() {
     button = 0;
     if(handler != 0)
         handler->OnActivate();
-    commandport.Write(0xAB);
+    commandport.Write(0xA8);
     commandport.Write(0x20);
     uint8_t status = (dataport.Read() | 2);
     commandport.Write(0x60);
