@@ -6,7 +6,8 @@ using namespace BenOS::hardwarecommunication;
 
 void printf(char* str);
 void printfHex(uint8_t);
-InterruptHandler::InterruptHandler(uint8_t interruptNumber, InterruptManager *interruptManager) {
+
+InterruptHandler::InterruptHandler(InterruptManager *interruptManager, uint8_t interruptNumber) {
     this->interruptNumber = interruptNumber;
     this->interruptManager = interruptManager;
     interruptManager->handlers[interruptNumber] = this;
@@ -109,4 +110,8 @@ void InterruptManager::Deactivate() {
         ActiveInterruptManager = 0;
         asm("cli");
     }
+}
+
+uint16_t InterruptManager::HardwareInterruptOffset(){
+    return hardwareInterruptOffset;
 }

@@ -13,7 +13,7 @@ namespace BenOS {
         protected:
             BenOS::common::uint8_t interruptNumber;
             InterruptManager *interruptManager;
-            InterruptHandler(BenOS::common::uint8_t interruptNumber, InterruptManager *interruptManager);
+            InterruptHandler(InterruptManager *interruptManager, BenOS::common::uint8_t interruptNumber);
             ~InterruptHandler();
         public:
             virtual BenOS::common::uint32_t HandleInterrupt(BenOS::common::uint32_t esp);
@@ -32,12 +32,13 @@ namespace BenOS {
                 BenOS::common::uint8_t access;
                 BenOS::common::uint16_t handleAddressHighBits;
             }__attribute__((packed));
+            BenOS::common::uint16_t hardwareInterruptOffset;
             static GateDescriptor interruptDescriptorTable[256];
             struct InterruptDescriptorTablePointer {
                 BenOS::common::uint16_t size;
                 BenOS::common::uint32_t base;
             }__attribute__((packed));
-            BenOS::common::uint16_t hardwareInterruptOffset;
+
             static void SetInterruptDescriptorTableEntry(BenOS::common::uint8_t interruptNumber, BenOS::common::uint16_t gdt_codeSegmentSelectorOffset,
                                              void (*handler)(), BenOS::common::uint8_t DescriptorPrivilegeLevel,
                                              BenOS::common::uint8_t DescriptorType);
@@ -47,6 +48,7 @@ namespace BenOS {
             Port8BitSlow picSlaveData;
 
         public:
+            BenOS::common::uint16_t HardwareInterruptOffset();
             InterruptManager(BenOS::common::uint16_t hardwareInterruptOffset, BenOS::GlobalDescriptorTable *gdt, BenOS::TaskManager *taskManager);
             ~InterruptManager();
             void Activate();
