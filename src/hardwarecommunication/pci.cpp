@@ -1,4 +1,5 @@
 #include <hardwarecommunication/pci.h>
+#include <drivers/amd_am79c973.h>
 
 using namespace BenOS::common;
 using namespace BenOS::drivers;
@@ -55,10 +56,10 @@ void PeripheralComponentInterconnectController::SelectDrivers(DriverManager *dri
                     if(bar.address && (bar.type == InputOutput)){
                         dev.portBase = (uint32_t)bar.address;
                     }
-                    Driver* driver = GetDriver(dev, interrupts);
-                    if(driver != 0){
-                        driverManager->AddDriver(driver);
-                    }
+                }
+                Driver* driver = GetDriver(dev, interrupts);
+                if(driver != 0){
+                    driverManager->AddDriver(driver);
                 }
                 printf("PCI BUS ");
                 printfHex(bus & 0xFF);
@@ -69,7 +70,7 @@ void PeripheralComponentInterconnectController::SelectDrivers(DriverManager *dri
                 printf(", FUNCTION ");
                 printfHex(function & 0xFF);
 
-                printf("= VENDOR");
+                printf(" = VENDOR ");
                 printfHex((dev.vendor_id & 0xFF00) >> 8);
                 printfHex(dev.vendor_id & 0xFF);
 
@@ -111,17 +112,22 @@ Driver* PeripheralComponentInterconnectController::GetDriver(PeripheralComponent
     switch(dev.vendor_id){
         case 0x1022: // AMD
             switch(dev.device_id){
-                case 0x2000:  //am70c973
-                    /*driver = (amd_am70c973*)MemoryManager::activeMemoryManager->malloc(sizeof(amd_am70c973));
+                case 0x2000:  //am79c973 NIC
+                    driver = (amd_am79c973*)MemoryManager::activeMemoryManager->malloc(sizeof(amd_am79c973));
                     if(driver != 0){
-                        new (driver) amd_am70c973(...);
-                    }*/
-                    printf("AMD CPU\n");
+                        new (driver)amd_am79c973(&dev, interrupts);
+                    }
+                    printf("AMD NIC\n");
+                    return driver;
                     break;
             }
             break;
         case 0x8086: // Intel
-            printf("Intel CPU\n");
+            switch(dev.device_id){
+                case 0x1237:  //TODO: should be fixed
+                    printf("Intel NIC\n");
+                    break;
+            }
             break;
     }
 
