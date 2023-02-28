@@ -11,6 +11,7 @@
 #include <gui/desktop.h>
 #include <gui/window.h>
 #include <drivers/amd_am79c973.h>
+#include <syscalls.h>
 
 //#define GRAPHICSMODE 0
 
@@ -112,15 +113,19 @@ public:
     }
 };
 
+void sysprintf(char *str){
+    asm("int $0x80" : : "a" (4), "b" (str));
+}
+
 void taskA(){
     while(true){
-        printf("Task 1\n");
+        sysprintf("Task 1\n");
     }
 }
 
 void taskB(){
     while(true){
-        printf("task 2\n");
+        sysprintf("task 2\n");
     }
 }
 
@@ -155,13 +160,13 @@ extern "C" void kernelMain(void *multiboot_structure, uint32_t magicnumber){
     printf("\n");
 
     TaskManager taskManager;
-    /*Task task1(&gdt, taskA);
+    Task task1(&gdt, taskA);
     Task task2(&gdt, taskB);
     taskManager.AddTask(&task1);
-    taskManager.AddTask(&task2);*/
+    taskManager.AddTask(&task2);
 
     InterruptManager interrupts(0x20, &gdt, &taskManager);
-
+    SyscallHandler syscalls(&interrupts, 0x80);
     printf("Initializing Hardware, stage 1\n");
 #ifdef GRAPHICSMODE
     Desktop desktop(320, 200, 0x00, 0x00, 0xA8);
@@ -198,7 +203,7 @@ extern "C" void kernelMain(void *multiboot_structure, uint32_t magicnumber){
     desktop.AddChild(&win2);
 #endif
 
-    AdvancedTechnologyAttachment ata0m(0x1F0, true);
+    /*AdvancedTechnologyAttachment ata0m(0x1F0, true);
     ata0m.Identify();
     AdvancedTechnologyAttachment ata0s(0x1F0, false);
     ata0s.Identify();
@@ -208,7 +213,7 @@ extern "C" void kernelMain(void *multiboot_structure, uint32_t magicnumber){
     ata0s.Read28(0, (uint8_t*)buffer, 18);
 
     AdvancedTechnologyAttachment ata1m(0x170, true);
-    AdvancedTechnologyAttachment ata1s(0x170, false);
+    AdvancedTechnologyAttachment ata1s(0x170, false);*/
 
     /*amd_am79c973* eth0 = (amd_am79c973*)(drvManager.drivers[2]);
     eth0->Send((uint8_t*)"Hello Network", 13);*/
