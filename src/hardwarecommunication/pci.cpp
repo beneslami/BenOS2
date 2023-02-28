@@ -123,12 +123,8 @@ Driver* PeripheralComponentInterconnectController::GetDriver(PeripheralComponent
             }
             break;
         case 0x8086: // Intel
-            switch(dev.device_id){
-                case 0x1237:  //TODO: should be fixed
-                    printf("Intel NIC\n");
-                    break;
-            }
-            break;
+        break;
+
     }
 
     switch(dev.class_id){
