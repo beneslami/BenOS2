@@ -26,6 +26,7 @@ _ZN5BenOS21hardwarecommunication16InterruptManager26HandleInterruptRequest\num\(
 HandleInterruptRequest 0x00
 HandleInterruptRequest 0x01
 HandleInterruptRequest 0x0C
+HandleInterruptRequest 0x80
 
 int_bottom:
     #pusha
