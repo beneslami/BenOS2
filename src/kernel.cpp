@@ -7,6 +7,7 @@
 #include <drivers/mouse.h>
 #include <drivers/driver.h>
 #include <drivers/vga.h>
+#include <drivers/ata.h>
 #include <gui/desktop.h>
 #include <gui/window.h>
 #include <drivers/amd_am79c973.h>
@@ -197,8 +198,20 @@ extern "C" void kernelMain(void *multiboot_structure, uint32_t magicnumber){
     desktop.AddChild(&win2);
 #endif
 
-    //amd_am79c973* eth0 = (amd_am79c973*)(drvManager.drivers[2]);
-    //eth0->Send((uint8_t*)"Hello Network", 13);
+    AdvancedTechnologyAttachment ata0m(0x1F0, true);
+    ata0m.Identify();
+    AdvancedTechnologyAttachment ata0s(0x1F0, false);
+    ata0s.Identify();
+    char *buffer = "TEST by Ben Eslami";
+    ata0s.Write28(0, (uint8_t*)buffer, 18);
+    ata0s.Flush();
+    ata0s.Read28(0, (uint8_t*)buffer, 18);
+
+    AdvancedTechnologyAttachment ata1m(0x170, true);
+    AdvancedTechnologyAttachment ata1s(0x170, false);
+
+    /*amd_am79c973* eth0 = (amd_am79c973*)(drvManager.drivers[2]);
+    eth0->Send((uint8_t*)"Hello Network", 13);*/
 
     interrupts.Activate();
 	while(1){
